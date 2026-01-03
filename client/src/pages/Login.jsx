@@ -92,6 +92,14 @@ const Login = () => {
 
           <div className="text-center text-xs text-slate-500 mt-4">
             Forgot credentials? Contact your System Administrator.
+            <div className="mt-6 pt-6 border-t border-slate-700/50">
+               <p className="text-sm text-slate-400">
+                   System Administrator?{' '}
+                   <Link to="/signup" className="text-indigo-400 hover:text-indigo-300 font-bold transition-colors ml-1">
+                      Create Company Account
+                   </Link>
+               </p>
+            </div>
           </div>
 
         </div>

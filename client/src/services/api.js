@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+    baseURL,
 });
 
 // Request interceptor to add token
@@ -34,7 +36,8 @@ api.interceptors.response.use(
                     return Promise.reject(error);
                 }
 
-                const res = await axios.post('/api/auth/refresh-token', { refreshToken });
+                // Use the correct baseURL for the refresh token request
+                const res = await axios.post(`${baseURL}/auth/refresh-token`, { refreshToken });
 
                 if (res.status === 200) {
                     const { accessToken } = res.data;

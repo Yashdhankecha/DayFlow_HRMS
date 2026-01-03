@@ -82,7 +82,7 @@ const HRDashboard = () => {
             variants={container} 
             initial="hidden" 
             animate="show" 
-            className="max-w-7xl mx-auto space-y-8"
+            className="max-w-7xl mx-auto space-y-0"
         >
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-800/50">
@@ -144,7 +144,7 @@ const HRDashboard = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Content Area */}
-                <div className="lg:col-span-2 space-y-8">
+                <div className="lg:col-span-2 space-y-6">
                     
                     {/* Quick Actions */}
                     <motion.div variants={itemVariant}>

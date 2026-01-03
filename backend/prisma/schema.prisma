@@ -11,19 +11,147 @@ datasource db {
 }
 
 enum Role {
-  USER
-  ADMIN
+  SUPER_ADMIN
+  HR_OFFICER
+  MANAGER
+  EMPLOYEE
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HALF_DAY
+  LATE
+  ON_LEAVE
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum LeaveType {
+  SICK
+  CASUAL
+  EARNED
+  UNPAID
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  password  String
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(uuid())
+  loginId       String   @unique // The auto-generated immutable ID
+  password      String
+  role          Role     @default(EMPLOYEE)
+  isActive      Boolean  @default(true)
+  isFirstLogin  Boolean  @default(true) // Forces password change
+  refreshToken  String?
   
-  // Refresh token for rotation (optional but good for security)
-  refreshToken String? 
+  employee      Employee? // One-to-one relation
+  auditLogs     AuditLog[] // Logs of actions performed by this user
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
+
+model Department {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  code        String     @unique // e.g. "IT", "HR"
+  employees   Employee[]
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Employee {
+  id            String      @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String      @unique
+  phone         String?
+  address       String?
+  dateOfJoining DateTime
+  
+  designation   String
+  
+  departmentId  String?
+  department    Department? @relation(fields: [departmentId], references: [id])
+  
+  userId        String?     @unique
+  user          User?       @relation(fields: [userId], references: [id])
+  
+  managerId     String?
+  manager       Employee?   @relation("ManagerSubordinates", fields: [managerId], references: [id])
+  subordinates  Employee[]  @relation("ManagerSubordinates")
+  
+  attendance    Attendance[]
+  leaves        LeaveRequest[]
+  payrolls      Payroll[]
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Attendance {
+  id          String           @id @default(uuid())
+  date        DateTime
+  clockIn     DateTime?
+  clockOut    DateTime?
+  status      AttendanceStatus @default(ABSENT)
+  ipAddress   String?
+  
+  employeeId  String
+  employee    Employee         @relation(fields: [employeeId], references: [id])
+  
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([employeeId, date]) // One record per employee per day
+}
+
+model LeaveRequest {
+  id          String      @id @default(uuid())
+  type        LeaveType
+  startDate   DateTime
+  endDate     DateTime
+  reason      String
+  status      LeaveStatus @default(PENDING)
+  
+  employeeId  String
+  employee    Employee    @relation(fields: [employeeId], references: [id])
+  
+  approverId  String?     // Who approved/rejected it
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Payroll {
+  id          String   @id @default(uuid())
+  month       String   // "2024-01"
+  basicSalary Float
+  allowances  Float    @default(0)
+  deductions  Float    @default(0)
+  netSalary   Float
+  status      String   @default("PROCESSED") // DRAFT, PROCESSED, PAID
+  
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String   // "CREATE_EMPLOYEE", "APPROVE_LEAVE"
+  details     String?  // JSON string or description
+  ipAddress   String?
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  createdAt   DateTime @default(now())
+}
+

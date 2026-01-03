@@ -18,24 +18,13 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
-    const res = await api.post('/auth/login', { email, password });
+
+  const login = async (loginId, password) => {
+    const res = await api.post('/auth/login', { loginId, password });
+
     const { accessToken, refreshToken, data } = res.data;
     
     // Save to local storage
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    
-    setUser(data.user);
-    return data.user;
-  };
-
-  const register = async (name, email, password, role) => {
-    const res = await api.post('/auth/register', { name, email, password, role });
-    // Usually auto-login or redirect to login. Let's auto-login.
-    const { accessToken, refreshToken, data } = res.data;
-    
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
     localStorage.setItem('user', JSON.stringify(data.user));
@@ -57,7 +46,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

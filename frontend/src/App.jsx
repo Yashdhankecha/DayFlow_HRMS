@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
-import Register from './pages/Register';
+import ChangePassword from './pages/ChangePassword';
 import Dashboard from './pages/Dashboard';
 import PrivateRoute from './routes/PrivateRoute';
 import DashboardLayout from './layouts/DashboardLayout';
@@ -18,11 +18,11 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-
           {/* Protected Routes */}
-          <Route path="/dashboard" element={<PrivateRoute />}>
-             <Route element={<DashboardLayout />}>
+          <Route element={<PrivateRoute />}>
+             <Route path="/change-password" element={<ChangePassword />} />
+             
+             <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<Dashboard />} />
                 {/* Add more sub-routes here like /dashboard/settings */}
                 <Route path="*" element={<Navigate to="/dashboard" />} />

@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const globalErrorHandler = require('./middlewares/errorHandler');
 const AppError = require('./utils/AppError');
 const authRoutes = require('./routes/authRoutes');
+const employeeRoutes = require('./routes/employeeRoutes');
 const { protect, restrictTo } = require('./middlewares/authMiddleware');
 
 const app = express();
@@ -15,6 +16,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/employees', employeeRoutes);
+
 
 // Protected Routes Example
 app.get('/api/dashboard/user', protect, (req, res) => {

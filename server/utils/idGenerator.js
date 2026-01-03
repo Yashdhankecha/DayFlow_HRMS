@@ -1,4 +1,4 @@
-const prisma = require('../prisma/client');
+const User = require('../models/userModel');
 
 const generateLoginId = async (firstName, lastName, dateOfJoining) => {
   const companyCode = 'OI'; // Customizable
@@ -6,30 +6,15 @@ const generateLoginId = async (firstName, lastName, dateOfJoining) => {
   const lNameCode = lastName.substring(0, 2).toUpperCase();
   const year = new Date(dateOfJoining).getFullYear().toString();
 
-  // We need to find the maximum serial used for this year.
-  // Since the prefix (OI + Name codes) changes, but the serial is global per year (based on "Serial resets every year"),
-  // we need to scan all IDs with that year at index 6.
-  
-  // Fetch all login IDs that look like they belong to this system (length 14 and contains year)
-  // Optimization: In a real large scale system, we'd have a separate Sequence table. 
-  // For this scale, selecting generic matches is fine.
-  
-  const users = await prisma.user.findMany({
-    where: {
-      loginId: {
-        contains: year
-      }
-    },
-    select: {
-      loginId: true
-    }
-  });
+  // Find users with matching year in loginId using regex
+  const users = await User.find({
+    loginId: { $regex: year }
+  }).select('loginId');
 
   let maxSerial = 0;
 
   for (const u of users) {
     const id = u.loginId;
-    // Expected format length is 14
     if (id.length === 14) {
       const extractedYear = id.substring(6, 10);
       if (extractedYear === year) {

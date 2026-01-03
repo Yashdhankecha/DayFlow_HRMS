@@ -38,6 +38,16 @@ app.use('/api/payroll', payrollRoutes);
 app.use('/api/leaves', leaveRoutes);
 app.use('/api/company', companyRoutes);
 
+// Health Check
+app.get('/api/health', (req, res) => {
+    res.status(200).json({
+        status: true,
+        message: 'Server is running',
+        timestamp: new Date()
+    });
+});
+
+
 
 // Protected Routes Example
 app.get('/api/dashboard/user', protect, (req, res) => {

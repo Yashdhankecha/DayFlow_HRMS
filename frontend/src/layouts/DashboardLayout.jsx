@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
 import { 
     LayoutDashboard, Users, UserCheck, CalendarDays, 
     Banknote, ShieldAlert, LogOut, Menu, Bell, ClipboardList 
@@ -141,3 +140,4 @@ const DashboardLayout = () => {
 };
 
 export default DashboardLayout;
+

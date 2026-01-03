@@ -220,7 +220,6 @@ const Landing = () => {
                     <motion.div 
                         key={idx}
                         whileHover={{ y: -5 }}
-
                         className="p-8 rounded-3xl bg-slate-900 border border-white/5 hover:border-primary-500/30 hover:bg-slate-900/80 transition-all group"
                     >
                         <div className="mb-6 bg-slate-950 p-4 rounded-2xl w-fit border border-slate-800 group-hover:border-primary-500/30 transition-colors">
@@ -228,7 +227,6 @@ const Landing = () => {
                         </div>
                         <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
                         <p className="text-slate-400 leading-relaxed">{feature.desc}</p>
-
                     </motion.div>
                 ))}
             </div>

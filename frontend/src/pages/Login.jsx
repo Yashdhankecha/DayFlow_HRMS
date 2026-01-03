@@ -91,7 +91,6 @@ const Login = () => {
 
       {/* Right side - Decoration */}
       <div className="hidden md:block relative bg-slate-900">
-
         <div className="absolute inset-0 bg-gradient-to-br from-primary-900 to-slate-900 opacity-90"></div>
         <div className="absolute inset-0 flex items-center justify-center p-12 text-white">
             <div className="max-w-lg">
@@ -100,7 +99,6 @@ const Login = () => {
                 </blockquote>
                 <div className="font-bold text-xl text-primary-400">Dayflow HRMS</div>
                 <div className="text-slate-500">v1.0.0 Enterprise Edition</div>
-
             </div>
         </div>
       </div>

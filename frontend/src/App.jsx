@@ -18,6 +18,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
+
           {/* Protected Routes */}
           <Route element={<PrivateRoute />}>
              <Route path="/change-password" element={<ChangePassword />} />
@@ -38,3 +39,4 @@ function App() {
 }
 
 export default App;
+

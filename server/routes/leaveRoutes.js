@@ -13,4 +13,5 @@ router.get('/my-leaves', leaveController.getMyLeaves);
 router.get('/all', restrictTo('HR_OFFICER', 'SUPER_ADMIN'), leaveController.getAllLeaves);
 router.patch('/:id/status', restrictTo('HR_OFFICER', 'SUPER_ADMIN'), leaveController.updateLeaveStatus);
 
+
 module.exports = router;

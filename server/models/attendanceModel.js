@@ -8,6 +8,7 @@ const attendanceSchema = new mongoose.Schema({
     },
     date: {
         type: Date,
+
         required: true,
         default: Date.now
     },
@@ -26,6 +27,7 @@ const attendanceSchema = new mongoose.Schema({
 
 // Prevent duplicate attendance for same employee on same day
 attendanceSchema.index({ employee: 1, date: 1 }, { unique: true });
+
 
 const Attendance = mongoose.model('Attendance', attendanceSchema);
 

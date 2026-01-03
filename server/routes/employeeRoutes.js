@@ -9,8 +9,12 @@ router.use(protect);
 
 router
     .route('/')
-    .post(restrictTo('SUPER_ADMIN', 'HR_OFFICER'), employeeController.createEmployee)
-    .get(restrictTo('SUPER_ADMIN', 'HR_OFFICER', 'MANAGER'), employeeController.getAllEmployees);
+    .post(restrictTo('HR_OFFICER'), employeeController.createEmployee)
+    .get(restrictTo('HR_OFFICER'), employeeController.getAllEmployees);
+
+// Employee can view/update their own profile
+router.get('/profile', employeeController.getMyProfile);
+router.patch('/profile', employeeController.updateMyProfile);
 
 router
     .route('/:id')

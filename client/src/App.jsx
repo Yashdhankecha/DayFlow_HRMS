@@ -4,8 +4,11 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import ChangePassword from './pages/ChangePassword';
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
-import AdminDashboard from './pages/admin/AdminDashboard';
+import EmployeeProfile from './pages/employee/EmployeeProfile';
+import EmployeeAttendance from './pages/employee/EmployeeAttendance';
+import EmployeeLeave from './pages/employee/EmployeeLeave';
 import HRDashboard from './pages/hr/HRDashboard';
+
 import Employees from './pages/hr/employees/Employees';
 import Attendance from './pages/hr/attendance/Attendance';
 import Leaves from './pages/hr/leaves/Leaves';
@@ -13,6 +16,9 @@ import Payroll from './pages/hr/payroll/Payroll';
 import Settings from './pages/hr/settings/Settings';
 import ManagerDashboard from './pages/manager/ManagerDashboard';
 import DashboardLayout from './layouts/DashboardLayout';
+
+import EmployeeLayout from './layouts/EmployeeLayout';
+
 import HRLayout from './layouts/HRLayout';
 import PrivateRoute from './routes/PrivateRoute';
 
@@ -43,14 +49,29 @@ function App() {
                  <Route path="*" element={<Navigate to="/dashboard/hr" replace />} />
              </Route>
 
-             {/* General Dashboard Layout */}
-             <Route path="/dashboard" element={<DashboardLayout />}>
-                 <Route index element={<EmployeeDashboard />} />
-                 <Route path="admin" element={<AdminDashboard />} />
-                 <Route path="manager" element={<ManagerDashboard />} />
-                 {/* Fallback for /dashboard/* */}
-                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
-             </Route>
+            {/* HR Dedicated Layout */}
+            <Route path="/dashboard/hr" element={<HRLayout />}>
+              <Route index element={<HRDashboard />} />
+              {/* Future HR specific routes */}
+              <Route path="employees" element={<div className="p-4 text-white">Employees Module - Coming Soon</div>} />
+              <Route path="recruitment" element={<div className="p-4 text-white">Recruitment Module - Coming Soon</div>} />
+              <Route path="attendance" element={<div className="p-4 text-white">Attendance Module - Coming Soon</div>} />
+              <Route path="payroll" element={<div className="p-4 text-white">Payroll Module - Coming Soon</div>} />
+              <Route path="settings" element={<div className="p-4 text-white">Settings Module - Coming Soon</div>} />
+              <Route path="*" element={<Navigate to="/dashboard/hr" replace />} />
+            </Route>
+
+            {/* Employee Dedicated Layout */}
+            <Route path="/dashboard/employee" element={<EmployeeLayout />}>
+              <Route index element={<EmployeeDashboard />} />
+              <Route path="profile" element={<EmployeeProfile />} />
+              <Route path="attendance" element={<EmployeeAttendance />} />
+              <Route path="leave" element={<EmployeeLeave />} />
+              <Route path="*" element={<Navigate to="/dashboard/employee" replace />} />
+            </Route>
+
+            {/* Default Dashboard - Redirect to employee */}
+            <Route path="/dashboard" element={<Navigate to="/dashboard/employee" replace />} />
           </Route>
 
           {/* Fallback */}

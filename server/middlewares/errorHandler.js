@@ -10,6 +10,7 @@ const globalErrorHandler = (err, req, res, next) => {
     const logMessage = `[${new Date().toISOString()}] ${err.stack}\n`;
     fs.appendFileSync(path.join(__dirname, '../error.log'), logMessage);
 
+
     if (process.env.NODE_ENV === 'development') {
         res.status(err.statusCode).json({
             status: err.status,

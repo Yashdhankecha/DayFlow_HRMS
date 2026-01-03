@@ -11,9 +11,13 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    name: {
+        type: String,
+        default: ''
+    },
     role: {
         type: String,
-        enum: ['SUPER_ADMIN', 'HR_OFFICER', 'MANAGER', 'EMPLOYEE'],
+        enum: ['HR_OFFICER', 'EMPLOYEE'],
         default: 'EMPLOYEE'
     },
     isActive: {

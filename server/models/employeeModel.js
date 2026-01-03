@@ -38,10 +38,25 @@ const employeeSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Employee'
     },
-    salary: {
-        type: Number,
-        default: 0
-    }
+
+    // Work Info
+    employeeCode: { type: String, unique: true, sparse: true },
+    location: { type: String, default: 'Head Office' },
+
+    // Personal Info
+    dateOfBirth: Date,
+    gender: { type: String, enum: ['Male', 'Female', 'Other', 'Prefer not to say'] },
+    maritalStatus: { type: String, enum: ['Single', 'Married', 'Divorced', 'Widowed'] },
+    nationality: String,
+    personalEmail: String,
+
+    // Bank Details
+    bankAccountNumber: String,
+    bankName: String,
+    ifscCode: String,
+    panNumber: String,
+    uanNumber: String
+
 }, { timestamps: true });
 
 // Virtual to get subordinates

@@ -6,9 +6,10 @@ const leaveSchema = new mongoose.Schema({
         ref: 'Employee',
         required: true
     },
-    leaveType: {
+
+    type: {
         type: String,
-        enum: ['Sick Leave', 'Casual Leave', 'Paid Leave', 'Unpaid Leave'],
+        enum: ['CASUAL', 'SICK', 'ANNUAL', 'UNPAID', 'TIME_OFF'],
         required: true
     },
     startDate: {
@@ -19,22 +20,43 @@ const leaveSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
+
+    // For partial day leaves (TIME_OFF)
+    startTime: {
+        type: String // Format: "HH:MM" 
+    },
+    endTime: {
+        type: String // Format: "HH:MM"
+    },
+
     reason: {
         type: String,
         required: true
     },
     status: {
         type: String,
-        enum: ['Pending', 'Approved', 'Rejected'],
-        default: 'Pending'
+
+        enum: ['PENDING', 'APPROVED', 'REJECTED'],
+        default: 'PENDING'
+    },
+    appliedOn: {
+        type: Date,
+        default: Date.now
     },
     approvedBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User' // Or Employee, usually User login
+        ref: 'User'
     },
-    rejectionReason: String
+    approvedOn: {
+        type: Date
+    },
+    rejectionReason: {
+        type: String
+    }
 }, { timestamps: true });
 
+// Index for faster queries
+leaveSchema.index({ employee: 1, appliedOn: -1 });
 const Leave = mongoose.model('Leave', leaveSchema);
 
 module.exports = Leave;

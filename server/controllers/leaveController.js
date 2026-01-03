@@ -63,3 +63,42 @@ exports.applyLeave = catchAsync(async (req, res, next) => {
         data: leave
     });
 });
+
+exports.getAllLeaves = catchAsync(async (req, res, next) => {
+    const leaves = await Leave.find()
+        .populate({
+            path: 'employee',
+            select: 'firstName lastName designation department',
+            populate: { path: 'department', select: 'name' }
+        })
+        .sort('-appliedOn');
+
+    res.status(200).json({
+        status: 'success',
+        results: leaves.length,
+        data: leaves
+    });
+});
+
+exports.updateLeaveStatus = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const { status, rejectionReason } = req.body;
+
+    const leave = await Leave.findByIdAndUpdate(
+        id,
+        {
+            status,
+            approvedBy: req.user._id,
+            approvedOn: new Date(),
+            rejectionReason: status === 'REJECTED' ? rejectionReason : undefined
+        },
+        { new: true }
+    );
+
+    if (!leave) return next(new AppError('Leave request not found', 404));
+
+    res.status(200).json({
+        status: 'success',
+        data: leave
+    });
+});

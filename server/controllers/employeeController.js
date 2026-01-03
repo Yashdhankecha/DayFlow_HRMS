@@ -221,6 +221,29 @@ exports.updateMyProfile = catchAsync(async (req, res, next) => {
 });
 
 
+exports.getEmployee = catchAsync(async (req, res, next) => {
+    const employee = await Employee.findById(req.params.id)
+        .populate({
+            path: 'user',
+            select: 'role isActive loginId'
+        })
+        .populate('department')
+        .populate({
+            path: 'manager',
+            select: 'firstName lastName'
+        });
+
+    if (!employee) {
+        return next(new AppError('No employee found with that ID', 404));
+    }
+
+    res.status(200).json({
+        status: 'success',
+        data: employee
+    });
+});
+
+
 exports.toggleEmployeeStatus = catchAsync(async (req, res, next) => {
     const employee = await Employee.findById(req.params.id);
     if (!employee) return next(new AppError('Employee not found', 404));

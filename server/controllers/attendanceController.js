@@ -198,8 +198,48 @@ exports.punch = catchAsync(async (req, res, next) => {
         }
     } catch (error) {
         console.error('=== PUNCH ERROR ===');
-        console.error('Error:', error.message);
-        console.error('Stack:', error.stack);
         return next(new AppError(`Punch failed: ${error.message}`, 500));
     }
+});
+
+exports.getHistory = catchAsync(async (req, res, next) => {
+    const employee = await Employee.findOne({ user: req.user._id });
+    if (!employee) return next(new AppError('Employee not found', 404));
+
+    const history = await Attendance.find({ employee: employee._id })
+        .sort({ date: -1 })
+        .limit(30)
+        .lean();
+
+    res.status(200).json({
+        status: 'success',
+        results: history.length,
+        data: history
+    });
+});
+
+exports.getAllAttendance = catchAsync(async (req, res, next) => {
+    // Optional date filter
+    const { date } = req.query;
+    let query = {};
+    if (date) {
+        const queryDate = new Date(date);
+        queryDate.setHours(0, 0, 0, 0);
+        query.date = { $gte: queryDate };
+    }
+
+    const attendance = await Attendance.find(query)
+        .populate({
+            path: 'employee',
+            select: 'firstName lastName designation department',
+            populate: { path: 'department', select: 'name' }
+        })
+        .sort('-date')
+        .limit(50); // specific limit for performance
+
+    res.status(200).json({
+        status: 'success',
+        results: attendance.length,
+        data: attendance
+    });
 });

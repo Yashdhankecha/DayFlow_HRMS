@@ -37,6 +37,10 @@ const employeeSchema = new mongoose.Schema({
     manager: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Employee'
+    },
+    salary: {
+        type: Number,
+        default: 0
     }
 }, { timestamps: true });
 

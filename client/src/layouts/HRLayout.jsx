@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
     LayoutDashboard, Users, Calendar, 
-    Briefcase, FileText, Settings, LogOut, 
+    FileText, Settings, LogOut, 
     Menu, Bell, ChevronRight, Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,8 +17,8 @@ const HRLayout = () => {
     const navItems = [
         { label: 'Overview', icon: <LayoutDashboard size={20}/>, path: '/dashboard/hr' },
         { label: 'Employees', icon: <Users size={20}/>, path: '/dashboard/hr/employees' },
-        { label: 'Recruitment', icon: <Briefcase size={20}/>, path: '/dashboard/hr/recruitment' },
         { label: 'Attendance', icon: <Calendar size={20}/>, path: '/dashboard/hr/attendance' },
+        { label: 'Leaves', icon: <FileText size={20}/>, path: '/dashboard/hr/leaves' },
         { label: 'Payroll', icon: <FileText size={20}/>, path: '/dashboard/hr/payroll' },
         { label: 'Settings', icon: <Settings size={20}/>, path: '/dashboard/hr/settings' },
     ];
@@ -135,37 +135,16 @@ const HRLayout = () => {
 
             {/* Main Content */}
             <main className="flex-1 flex flex-col min-w-0 bg-slate-950 relative overflow-hidden">
-                {/* Top Bar */}
-                <header className="h-20 border-b border-slate-800/50 flex items-center justify-between px-4 md:px-8 bg-slate-950/50 backdrop-blur-md sticky top-0 z-20">
-                    <div className="flex items-center gap-4">
-                        <button 
-                            onClick={() => setIsMobileMenuOpen(true)} 
-                            className="md:hidden p-2 text-slate-400 hover:text-white"
-                        >
-                            <Menu size={24}/>
-                        </button>
-                        <button 
-                            onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-                            className="hidden md:flex p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-                        >
-                            <Menu size={20}/>
-                        </button>
-                    </div>
-
-                    <div className="flex items-center gap-6">
-                        <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-slate-900/50 border border-slate-800 rounded-full w-64 focus-within:border-indigo-500/50 focus-within:bg-slate-900 transition-all">
-                             <Search size={16} className="text-slate-500" />
-                             <input type="text" placeholder="Quick search..." className="bg-transparent border-none focus:outline-none text-sm text-slate-300 w-full placeholder-slate-600"/>
-                        </div>
-                        <button className="relative p-2 text-slate-400 hover:text-white transition-colors">
-                            <Bell size={20} />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-950"></span>
-                        </button>
-                    </div>
-                </header>
-
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-auto p-4 md:p-8 relative">
+                    {/* Floating Mobile Toggle */}
+                    <button 
+                        onClick={() => setIsMobileMenuOpen(true)} 
+                        className="md:hidden absolute top-4 left-4 z-20 p-2 bg-slate-800 text-slate-400 rounded-lg hover:text-white"
+                    >
+                        <Menu size={24}/>
+                    </button>
+
                     {/* Background Gradients */}
                     <div className="absolute top-0 left-0 w-full h-96 bg-indigo-600/5 rounded-full blur-3xl -translate-y-1/2 pointer-events-none" />
                     <div className="absolute bottom-0 right-0 w-96 h-96 bg-violet-600/5 rounded-full blur-3xl translate-y-1/2 pointer-events-none" />

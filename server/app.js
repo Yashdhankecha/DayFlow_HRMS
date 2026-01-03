@@ -3,8 +3,22 @@ const cors = require('cors');
 const morgan = require('morgan');
 const globalErrorHandler = require('./middlewares/errorHandler');
 const AppError = require('./utils/AppError');
+
+// Load Models (Ensure Registration)
+require('./models/userModel');
+require('./models/departmentModel');
+require('./models/employeeModel');
+require('./models/attendanceModel');
+require('./models/leaveModel');
+require('./models/auditLogModel');
+require('./models/payrollModel');
+
 const authRoutes = require('./routes/authRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
+const hrRoutes = require('./routes/hrRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
+const payrollRoutes = require('./routes/payrollRoutes');
+const leaveRoutes = require('./routes/leaveRoutes');
 const { protect, restrictTo } = require('./middlewares/authMiddleware');
 
 const app = express();
@@ -17,6 +31,10 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
+app.use('/api/hr', hrRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/payroll', payrollRoutes);
+app.use('/api/leaves', leaveRoutes);
 
 
 // Protected Routes Example

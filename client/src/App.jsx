@@ -6,6 +6,11 @@ import ChangePassword from './pages/ChangePassword';
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import HRDashboard from './pages/hr/HRDashboard';
+import Employees from './pages/hr/employees/Employees';
+import Attendance from './pages/hr/attendance/Attendance';
+import Leaves from './pages/hr/leaves/Leaves';
+import Payroll from './pages/hr/payroll/Payroll';
+import Settings from './pages/hr/settings/Settings';
 import ManagerDashboard from './pages/manager/ManagerDashboard';
 import DashboardLayout from './layouts/DashboardLayout';
 import HRLayout from './layouts/HRLayout';
@@ -30,12 +35,11 @@ function App() {
              {/* HR Dedicated Layout (Must be before general dashboard to take precedence) */}
              <Route path="/dashboard/hr" element={<HRLayout />}>
                  <Route index element={<HRDashboard />} />
-                 {/* Future HR specific routes */}
-                 <Route path="employees" element={<div className="p-4 text-white">Employees Module - Coming Soon</div>} /> 
-                 <Route path="recruitment" element={<div className="p-4 text-white">Recruitment Module - Coming Soon</div>} /> 
-                 <Route path="attendance" element={<div className="p-4 text-white">Attendance Module - Coming Soon</div>} /> 
-                 <Route path="payroll" element={<div className="p-4 text-white">Payroll Module - Coming Soon</div>} /> 
-                 <Route path="settings" element={<div className="p-4 text-white">Settings Module - Coming Soon</div>} /> 
+                 <Route path="employees" element={<Employees />} /> 
+                 <Route path="attendance" element={<Attendance />} /> 
+                 <Route path="leaves" element={<Leaves />} /> 
+                 <Route path="payroll" element={<Payroll />} /> 
+                 <Route path="settings" element={<Settings />} /> 
                  <Route path="*" element={<Navigate to="/dashboard/hr" replace />} />
              </Route>
 

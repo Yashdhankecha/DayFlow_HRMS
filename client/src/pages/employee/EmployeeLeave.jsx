@@ -274,112 +274,148 @@ const EmployeeLeave = () => {
 
             {/* Apply Leave Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300">
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="bg-slate-900 rounded-2xl p-6 max-w-md w-full border border-slate-700 shadow-xl"
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden"
                     >
-                        <h3 className="text-2xl font-bold text-white mb-6">Apply for Leave</h3>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-400 mb-2">Leave Type</label>
-                                <select
-                                    value={formData.type}
-                                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                    className="w-full p-3 bg-slate-800 rounded-lg text-white border border-slate-600 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none"
-                                    required
-                                >
-                                    <option value="CASUAL">Casual Leave</option>
-                                    <option value="SICK">Sick Leave</option>
-                                    <option value="ANNUAL">Annual Leave</option>
-                                    <option value="TIME_OFF">Time Off (Partial Day)</option>
-                                </select>
+                        {/* Modal Header */}
+                        <div className="px-8 py-6 border-b border-slate-800 bg-slate-900/50">
+                            <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                                <Plus className="text-primary-400" size={24} />
+                                New Leave Request
+                            </h3>
+                            <p className="text-slate-400 text-sm mt-1">Fill in the details below to request a leave.</p>
+                        </div>
+
+                        {/* Modal Body */}
+                        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+
+                            {/* Leave Type */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                    <FileText size={16} className="text-primary-400" />
+                                    Leave Type
+                                </label>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    {['CASUAL', 'SICK', 'ANNUAL', 'TIME_OFF'].map(type => (
+                                        <button
+                                            key={type}
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, type })}
+                                            className={`py-3 px-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${formData.type === type
+                                                    ? 'bg-primary-600 text-white border-primary-500 shadow-lg shadow-primary-500/20'
+                                                    : 'bg-slate-800/50 text-slate-400 border-slate-700 hover:border-slate-600 hover:bg-slate-800'
+                                                }`}
+                                        >
+                                            {type.replace('_', ' ')}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
-                            {formData.type === 'TIME_OFF' ? (
-                                <>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-400 mb-2">Date</label>
-                                        <input
-                                            type="date"
-                                            value={formData.startDate}
-                                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value, endDate: e.target.value })}
-                                            className="w-full p-3 bg-slate-800 rounded-lg text-white border border-slate-600 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-400 mb-2">Start Time</label>
+                            <div className="bg-slate-800/30 rounded-xl p-6 border border-slate-800 space-y-6">
+                                {formData.type === 'TIME_OFF' ? (
+                                    <>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                                <Calendar size={16} className="text-blue-400" /> Date
+                                            </label>
                                             <input
-                                                type="time"
-                                                value={formData.startTime || ''}
-                                                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                                                className="w-full p-3 bg-slate-800 rounded-lg text-white border border-slate-600 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                                                type="date"
+                                                value={formData.startDate}
+                                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value, endDate: e.target.value })}
+                                                className="w-full p-3 bg-slate-900/50 rounded-lg text-white border border-slate-700 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-colors"
                                                 required
                                             />
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-400 mb-2">End Time</label>
+                                        <div className="grid grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                                    <Clock size={16} className="text-orange-400" /> Start Time
+                                                </label>
+                                                <input
+                                                    type="time"
+                                                    value={formData.startTime || ''}
+                                                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                                                    className="w-full p-3 bg-slate-900/50 rounded-lg text-white border border-slate-700 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-colors"
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                                    <Clock size={16} className="text-orange-400" /> End Time
+                                                </label>
+                                                <input
+                                                    type="time"
+                                                    value={formData.endTime || ''}
+                                                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                                                    className="w-full p-3 bg-slate-900/50 rounded-lg text-white border border-slate-700 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-colors"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                                <Calendar size={16} className="text-blue-400" /> From Date
+                                            </label>
                                             <input
-                                                type="time"
-                                                value={formData.endTime || ''}
-                                                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                                                className="w-full p-3 bg-slate-800 rounded-lg text-white border border-slate-600 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                                                type="date"
+                                                value={formData.startDate}
+                                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                                className="w-full p-3 bg-slate-900/50 rounded-lg text-white border border-slate-700 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-colors"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                                <Calendar size={16} className="text-blue-400" /> To Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={formData.endDate}
+                                                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                                className="w-full p-3 bg-slate-900/50 rounded-lg text-white border border-slate-700 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-colors"
                                                 required
                                             />
                                         </div>
                                     </div>
-                                </>
-                            ) : (
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-400 mb-2">Start Date</label>
-                                        <input
-                                            type="date"
-                                            value={formData.startDate}
-                                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                            className="w-full p-3 bg-slate-800 rounded-lg text-white border border-slate-600 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-400 mb-2">End Date</label>
-                                        <input
-                                            type="date"
-                                            value={formData.endDate}
-                                            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                            className="w-full p-3 bg-slate-800 rounded-lg text-white border border-slate-600 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                            <div>
-                                <label className="block text-sm font-medium text-slate-400 mb-2">Reason</label>
+                                )}
+                            </div>
+
+                            {/* Reason */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                    <FileText size={16} className="text-slate-400" /> Reason
+                                </label>
                                 <textarea
                                     value={formData.reason}
                                     onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                                    className="w-full p-3 bg-slate-800 rounded-lg text-white border border-slate-600 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none resize-none"
-                                    rows="3"
+                                    className="w-full p-4 bg-slate-900/50 rounded-xl text-white border border-slate-700 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none resize-none transition-colors h-32"
                                     required
-                                    placeholder="Enter reason for leave"
+                                    placeholder="Please provide a valid reason for your leave request..."
                                 />
                             </div>
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="submit"
-                                    className="flex-1 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
-                                >
-                                    Submit Request
-                                </button>
+
+                            {/* Actions */}
+                            <div className="flex gap-4 pt-4 border-t border-slate-800">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="flex-1 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
+                                    className="flex-1 py-3 px-4 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 transition-colors font-bold text-sm"
                                 >
                                     Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-[2] py-3 px-4 bg-primary-600 text-white rounded-xl hover:bg-primary-500 transition-colors font-bold text-sm shadow-lg shadow-primary-500/20"
+                                >
+                                    Submit Request
                                 </button>
                             </div>
                         </form>

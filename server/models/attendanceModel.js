@@ -14,15 +14,18 @@ const attendanceSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Present', 'Absent', 'Half-Day', 'Late', 'On Leave'],
-        default: 'Use Logic' // Can be inferred or set explicitly
+        enum: ['PRESENT', 'ABSENT', 'HALF_DAY', 'LATE', 'ON_LEAVE'],
+        default: 'ABSENT'
     },
-    checkInTime: {
-        type: Date
-    },
-    checkOutTime: {
-        type: Date
-    }
+    punches: [{
+        punchIn: {
+            type: Date,
+            required: true
+        },
+        punchOut: {
+            type: Date
+        }
+    }]
 }, { timestamps: true });
 
 // Prevent duplicate attendance for same employee on same day

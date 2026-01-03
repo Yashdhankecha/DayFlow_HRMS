@@ -56,6 +56,18 @@ const employeeSchema = new mongoose.Schema({
     ifscCode: String,
     panNumber: String,
     uanNumber: String,
+ 
+
+    // Salary Info
+    salary: {
+        ctc: { type: Number, default: 0 }, // Annual CTC
+        basic: { type: Number, default: 0 },
+        hra: { type: Number, default: 0 },
+        allowances: { type: Number, default: 0 },
+        deductions: { type: Number, default: 0 },
+        netSalary: { type: Number, default: 0 }
+    }
+ 
 
     // Payroll Info
     salaryStructure: {

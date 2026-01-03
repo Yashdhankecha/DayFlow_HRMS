@@ -74,8 +74,8 @@ const DashboardLayout = () => {
                             to={item.path}
                             onClick={handleNavClick}
                             className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all font-medium ${location.pathname === item.path
-                                    ? 'bg-primary-600/10 text-primary-400 border border-primary-600/20'
-                                    : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+                                ? 'bg-primary-600/10 text-primary-400 border border-primary-600/20'
+                                : 'text-slate-400 hover:bg-slate-900 hover:text-white'
                                 }`}
                         >
                             <div className="min-w-[24px]">{item.icon}</div>
@@ -109,10 +109,7 @@ const DashboardLayout = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <button className="p-2 hover:bg-slate-900 rounded-full text-slate-400 relative">
-                            <Bell size={20} />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-slate-950"></span>
-                        </button>
+
                         <div className="flex items-center gap-3 pl-4 border-l border-slate-800">
                             <div className="text-right hidden sm:block">
                                 <div className="text-sm font-bold text-slate-200">{user?.name || 'User'}</div>

@@ -19,6 +19,7 @@ router.patch('/profile', employeeController.updateMyProfile);
 router
     .route('/:id')
     .get(restrictTo('SUPER_ADMIN', 'HR_OFFICER', 'MANAGER'), employeeController.getEmployee)
+    .patch(restrictTo('SUPER_ADMIN', 'HR_OFFICER'), employeeController.updateEmployee)
     .delete(restrictTo('SUPER_ADMIN', 'HR_OFFICER'), employeeController.deleteEmployee);
 
 router.patch('/:id/toggle-status', restrictTo('SUPER_ADMIN', 'HR_OFFICER'), employeeController.toggleEmployeeStatus);

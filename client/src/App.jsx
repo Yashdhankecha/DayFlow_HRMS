@@ -45,21 +45,9 @@ function App() {
                  <Route path="attendance" element={<Attendance />} /> 
                  <Route path="leaves" element={<Leaves />} /> 
                  <Route path="payroll" element={<Payroll />} /> 
-                 <Route path="settings" element={<Settings />} /> 
+                 <Route path="profile" element={<Settings />} /> 
                  <Route path="*" element={<Navigate to="/dashboard/hr" replace />} />
              </Route>
-
-            {/* HR Dedicated Layout */}
-            <Route path="/dashboard/hr" element={<HRLayout />}>
-              <Route index element={<HRDashboard />} />
-              {/* Future HR specific routes */}
-              <Route path="employees" element={<div className="p-4 text-white">Employees Module - Coming Soon</div>} />
-              <Route path="recruitment" element={<div className="p-4 text-white">Recruitment Module - Coming Soon</div>} />
-              <Route path="attendance" element={<div className="p-4 text-white">Attendance Module - Coming Soon</div>} />
-              <Route path="payroll" element={<div className="p-4 text-white">Payroll Module - Coming Soon</div>} />
-              <Route path="settings" element={<div className="p-4 text-white">Settings Module - Coming Soon</div>} />
-              <Route path="*" element={<Navigate to="/dashboard/hr" replace />} />
-            </Route>
 
             {/* Employee Dedicated Layout */}
             <Route path="/dashboard/employee" element={<EmployeeLayout />}>

@@ -82,7 +82,7 @@ exports.getAllLeaves = catchAsync(async (req, res, next) => {
 
 exports.updateLeaveStatus = catchAsync(async (req, res, next) => {
     const { id } = req.params;
-    const { status, rejectionReason } = req.body;
+    const { status, comments } = req.body;
 
     const leave = await Leave.findByIdAndUpdate(
         id,
@@ -90,7 +90,8 @@ exports.updateLeaveStatus = catchAsync(async (req, res, next) => {
             status,
             approvedBy: req.user._id,
             approvedOn: new Date(),
-            rejectionReason: status === 'REJECTED' ? rejectionReason : undefined
+            comments,
+            rejectionReason: status === 'REJECTED' ? comments : undefined
         },
         { new: true }
     );

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Users, Plus, Search, Filter, MoreVertical, 
     Mail, Phone, Calendar, MapPin, TabletSmartphone,
-    CheckCircle, XCircle, RefreshCw, User
+    CheckCircle, XCircle, RefreshCw, User, Briefcase, DollarSign, FolderOpen, FileText, Plane
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -15,7 +15,47 @@ const Employees = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState(null); // For View Profile Modal
+    const [viewTab, setViewTab] = useState('overview');
     const [searchQuery, setSearchQuery] = useState('');
+    
+    // Edit State
+    const [isEditing, setIsEditing] = useState(false);
+    const [editFormData, setEditFormData] = useState({});
+
+    // Reset edit state when modal closes or employee changes
+    useEffect(() => {
+        if (selectedEmployee) {
+            setEditFormData(JSON.parse(JSON.stringify(selectedEmployee))); // Deep copy
+        } else {
+            setIsEditing(false);
+            setEditFormData({});
+        }
+    }, [selectedEmployee]);
+
+    const handleUpdateEmployee = async () => {
+        try {
+            const res = await api.patch(`/employees/${selectedEmployee._id}`, editFormData);
+            
+            // Update local state
+            setSelectedEmployee(res.data.data);
+            setEmployees(prev => prev.map(emp => emp._id === res.data.data._id ? res.data.data : emp));
+            setIsEditing(false);
+            toast.success('Employee profile updated successfully');
+        } catch (error) {
+            console.error(error);
+            toast.error(error.response?.data?.message || 'Failed to update profile');
+        }
+    };
+
+    const handleSalaryChange = (field, value) => {
+        setEditFormData(prev => ({
+            ...prev,
+            salaryStructure: {
+                ...prev.salaryStructure,
+                [field]: value
+            }
+        }));
+    };
 
     const handleToggleStatus = async (id, currentStatus) => {
         if (!window.confirm(`Are you sure you want to ${currentStatus ? 'deactivate' : 'activate'} this employee?`)) return;
@@ -46,7 +86,7 @@ const Employees = () => {
         email: '',
         phone: '',
         address: '',
-        dateOfJoining: '',
+        dateOfJoining: new Date().toISOString().split('T')[0],
         designation: '',
         role: 'EMPLOYEE',
         departmentId: '' 
@@ -167,8 +207,21 @@ const Employees = () => {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 transition-all group"
+                                className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 transition-all group relative"
                             >
+                                {/* Attendance Status Indicator - Top Right */}
+                                <div className="absolute top-4 right-4 z-20 p-1.5 bg-slate-950/80 backdrop-blur-md rounded-full border border-slate-800 shadow-lg" title={`Status: ${employee.todayStatus || 'Absent'}`}>
+                                    {['Present', 'Late', 'Half-Day'].includes(employee.todayStatus) && (
+                                        <div className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse"></div>
+                                    )}
+                                    {employee.todayStatus === 'On Leave' && (
+                                        <Plane className="text-blue-400 -rotate-45" size={14} />
+                                    )}
+                                    {(!employee.todayStatus || employee.todayStatus === 'Absent') && (
+                                        <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full shadow-[0_0_8px_rgba(234,179,8,0.8)]"></div>
+                                    )}
+                                </div>
+
                                 <div className="p-6">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-lg font-bold shadow-lg shadow-indigo-900/20">
@@ -237,86 +290,331 @@ const Employees = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                            onClick={() => setSelectedEmployee(null)}
+                            onClick={() => { setSelectedEmployee(null); setViewTab('overview'); }}
                         />
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden"
+                            className="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[600px]"
+                            onClick={(e) => e.stopPropagation()}
                         >
-                            <div className="relative h-32 bg-gradient-to-r from-indigo-600 to-violet-600">
-                                <button 
-                                    onClick={() => setSelectedEmployee(null)}
-                                    className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 rounded-full text-white transition-colors"
-                                >
-                                    <XCircle size={20} />
-                                </button>
-                                <div className="absolute -bottom-12 left-6">
-                                    <div className="w-24 h-24 rounded-full bg-slate-900 p-1">
-                                        <div className="w-full h-full rounded-full bg-slate-800 flex items-center justify-center text-3xl font-bold text-slate-200 border border-slate-700">
-                                            {selectedEmployee.firstName[0]}{selectedEmployee.lastName[0]}
-                                        </div>
+                            {/* Left Sidebar */}
+                            <div className="w-full md:w-64 bg-slate-950/50 border-r border-slate-800 flex flex-col">
+                                <div className="p-6 border-b border-slate-800 flex flex-col items-center text-center">
+                                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-2xl font-bold mb-3 shadow-lg shadow-indigo-500/20">
+                                        {selectedEmployee.firstName[0]}{selectedEmployee.lastName[0]}
                                     </div>
+                                    <h2 className="font-bold text-white truncate max-w-full">
+                                        {selectedEmployee.firstName} {selectedEmployee.lastName}
+                                    </h2>
+                                    <p className="text-xs text-indigo-400 mt-1 truncate">{selectedEmployee.designation}</p>
+                                    <div className={`mt-3 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                        selectedEmployee.user?.isActive 
+                                        ? 'bg-green-500/10 text-green-400 border-green-500/20' 
+                                        : 'bg-red-500/10 text-red-400 border-red-500/20'
+                                    }`}>
+                                        {selectedEmployee.user?.isActive ? 'ACTIVE EMPLOYEE' : 'INACTIVE'}
+                                    </div>
+                                </div>
+                                <div className="p-4 space-y-1 flex-1 overflow-y-auto">
+                                    {[
+                                        { id: 'overview', icon: User, label: 'Personal Details' },
+                                        { id: 'job', icon: Briefcase, label: 'Job Details' },
+                                        { id: 'salary', icon: DollarSign, label: 'Salary Structure' },
+                                        { id: 'documents', icon: FolderOpen, label: 'Documents' }
+                                    ].map(tab => (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => setViewTab(tab.id)}
+                                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                                                viewTab === tab.id 
+                                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
+                                                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                                            }`}
+                                        >
+                                            <tab.icon size={18} />
+                                            {tab.label}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
-                            
-                            <div className="pt-16 pb-8 px-6">
-                                <h2 className="text-2xl font-bold text-white">
-                                    {selectedEmployee.firstName} {selectedEmployee.lastName}
-                                </h2>
-                                <p className="text-indigo-400 font-medium">{selectedEmployee.designation}</p>
 
-                                <div className="mt-8 space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
-                                            <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Login ID</p>
-                                            <p className="font-mono text-white">{selectedEmployee.user?.loginId}</p>
-                                        </div>
-                                        <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
-                                            <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Role</p>
-                                            <p className="font-medium text-white">{selectedEmployee.user?.role}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3 pt-2">
-                                        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800/50 transition-colors">
-                                            <Mail className="text-slate-500" size={18} />
-                                            <div>
-                                                <p className="text-xs text-slate-500">Email Address</p>
-                                                <p className="text-slate-200">{selectedEmployee.email}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800/50 transition-colors">
-                                            <Phone className="text-slate-500" size={18} />
-                                            <div>
-                                                <p className="text-xs text-slate-500">Phone Number</p>
-                                                <p className="text-slate-200">{selectedEmployee.phone}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800/50 transition-colors">
-                                            <MapPin className="text-slate-500" size={18} />
-                                            <div>
-                                                <p className="text-xs text-slate-500">Address</p>
-                                                <p className="text-slate-200">{selectedEmployee.address}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800/50 transition-colors">
-                                            <Calendar className="text-slate-500" size={18} />
-                                            <div>
-                                                <p className="text-xs text-slate-500">Date of Joining</p>
-                                                <p className="text-slate-200">{new Date(selectedEmployee.dateOfJoining).toLocaleDateString()}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="mt-8 pt-6 border-t border-slate-800 flex justify-end">
+                            {/* Right Content */}
+                            <div className="flex-1 flex flex-col min-w-0 bg-slate-900">
+                                <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+                                    <h3 className="text-lg font-bold text-white capitalize">
+                                        {viewTab.replace('-', ' ')}
+                                    </h3>
                                     <button 
-                                        onClick={() => setSelectedEmployee(null)}
-                                        className="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors"
+                                        onClick={() => { setSelectedEmployee(null); setViewTab('overview'); }}
+                                        className="text-slate-500 hover:text-white transition-colors"
                                     >
-                                        Close
+                                        <XCircle size={24} />
                                     </button>
+                                </div>
+                                
+                                <div className="flex-1 overflow-y-auto p-6">
+                                    {viewTab === 'overview' && (
+                                        <div className="space-y-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-slate-500 uppercase">First Name</label>
+                                                    {isEditing ? (
+                                                        <input 
+                                                            value={editFormData.firstName || ''}
+                                                            onChange={(e) => setEditFormData({...editFormData, firstName: e.target.value})}
+                                                            className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white text-sm"
+                                                        />
+                                                    ) : (
+                                                        <p className="text-slate-200">{selectedEmployee.firstName}</p>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-slate-500 uppercase">Last Name</label>
+                                                    {isEditing ? (
+                                                        <input 
+                                                            value={editFormData.lastName || ''}
+                                                            onChange={(e) => setEditFormData({...editFormData, lastName: e.target.value})}
+                                                            className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white text-sm"
+                                                        />
+                                                    ) : (
+                                                        <p className="text-slate-200">{selectedEmployee.lastName}</p>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-slate-500 uppercase">Email Address</label>
+                                                    {isEditing ? (
+                                                        <input 
+                                                            value={editFormData.email || ''}
+                                                            onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+                                                            className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white text-sm"
+                                                        />
+                                                    ) : (
+                                                        <p className="text-slate-200 break-all">{selectedEmployee.email}</p>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-slate-500 uppercase">Phone Number</label>
+                                                    {isEditing ? (
+                                                        <input 
+                                                            value={editFormData.phone || ''}
+                                                            onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
+                                                            className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white text-sm"
+                                                        />
+                                                    ) : (
+                                                        <p className="text-slate-200">{selectedEmployee.phone}</p>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-slate-500 uppercase">Address</label>
+                                                    {isEditing ? (
+                                                        <input 
+                                                            value={editFormData.address || ''}
+                                                            onChange={(e) => setEditFormData({...editFormData, address: e.target.value})}
+                                                            className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white text-sm"
+                                                        />
+                                                    ) : (
+                                                        <p className="text-slate-200">{selectedEmployee.address}</p>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-slate-500 uppercase">Nationality</label>
+                                                    <p className="text-slate-200">Indian</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {viewTab === 'job' && (
+                                        <div className="space-y-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-slate-500 uppercase">Employee ID (Login ID)</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                                                            {selectedEmployee.user?.loginId}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-slate-500 uppercase">Designation</label>
+                                                    {isEditing ? (
+                                                        <input 
+                                                            value={editFormData.designation || ''}
+                                                            onChange={(e) => setEditFormData({...editFormData, designation: e.target.value})}
+                                                            className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white text-sm"
+                                                        />
+                                                    ) : (
+                                                        <p className="text-slate-200">{selectedEmployee.designation}</p>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-slate-500 uppercase">Department</label>
+                                                    <p className="text-slate-200">{selectedEmployee.department?.name || 'Unassigned'}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-slate-500 uppercase">Date of Joining</label>
+                                                    {isEditing ? (
+                                                        <input 
+                                                            type="date"
+                                                            value={editFormData.dateOfJoining ? new Date(editFormData.dateOfJoining).toISOString().split('T')[0] : ''}
+                                                            onChange={(e) => setEditFormData({...editFormData, dateOfJoining: e.target.value})}
+                                                            className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white text-sm"
+                                                        />
+                                                    ) : (
+                                                        <p className="text-slate-200">{new Date(selectedEmployee.dateOfJoining).toLocaleDateString()}</p>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-slate-500 uppercase">Employment Type</label>
+                                                    <p className="text-slate-200">Full Time</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-slate-500 uppercase">Shift Timing</label>
+                                                    <p className="text-slate-200">9:00 AM - 6:00 PM</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {viewTab === 'salary' && (
+                                        <div className="space-y-6">
+                                            <div className="bg-slate-950 border border-slate-800 rounded-xl p-4">
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <h4 className="text-sm font-bold text-white">Current Salary Structure</h4>
+                                                    <span className="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">Effective: {new Date().getFullYear()}</span>
+                                                </div>
+                                                
+                                                {(() => {
+                                                    const structure = isEditing ? (editFormData.salaryStructure || {}) : (selectedEmployee.salaryStructure || {});
+                                                    const gross = (Number(structure.basicSalary) || 0) + 
+                                                                  (Number(structure.hra) || 0) + 
+                                                                  (Number(structure.specialAllowance) || 0) + 
+                                                                  (Number(structure.otherAllowances) || 0);
+                                                    
+                                                    return (
+                                                        <div className="space-y-3">
+                                                            <div className="flex justify-between items-center text-sm">
+                                                                <span className="text-slate-400">Basic Salary</span>
+                                                                {isEditing ? (
+                                                                    <input 
+                                                                        type="number"
+                                                                        value={structure.basicSalary || 0}
+                                                                        onChange={(e) => handleSalaryChange('basicSalary', Number(e.target.value))}
+                                                                        className="w-32 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-right font-mono text-sm"
+                                                                    />
+                                                                ) : (
+                                                                    <span className="text-slate-200 font-mono">₹ {structure.basicSalary || 0}</span>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex justify-between items-center text-sm">
+                                                                <span className="text-slate-400">HRA</span>
+                                                                {isEditing ? (
+                                                                    <input 
+                                                                        type="number"
+                                                                        value={structure.hra || 0}
+                                                                        onChange={(e) => handleSalaryChange('hra', Number(e.target.value))}
+                                                                        className="w-32 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-right font-mono text-sm"
+                                                                    />
+                                                                ) : (
+                                                                    <span className="text-slate-200 font-mono">₹ {structure.hra || 0}</span>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex justify-between items-center text-sm">
+                                                                <span className="text-slate-400">Special Allowance</span>
+                                                                {isEditing ? (
+                                                                    <input 
+                                                                        type="number"
+                                                                        value={structure.specialAllowance || 0}
+                                                                        onChange={(e) => handleSalaryChange('specialAllowance', Number(e.target.value))}
+                                                                        className="w-32 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-right font-mono text-sm"
+                                                                    />
+                                                                ) : (
+                                                                    <span className="text-slate-200 font-mono">₹ {structure.specialAllowance || 0}</span>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex justify-between items-center text-sm">
+                                                                <span className="text-slate-400">Other Allowances</span>
+                                                                {isEditing ? (
+                                                                    <input 
+                                                                        type="number"
+                                                                        value={structure.otherAllowances || 0}
+                                                                        onChange={(e) => handleSalaryChange('otherAllowances', Number(e.target.value))}
+                                                                        className="w-32 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-right font-mono text-sm"
+                                                                    />
+                                                                ) : (
+                                                                    <span className="text-slate-200 font-mono">₹ {structure.otherAllowances || 0}</span>
+                                                                )}
+                                                            </div>
+
+                                                            <div className="h-px bg-slate-800 my-2"></div>
+                                                            
+                                                            <div className="flex justify-between text-sm font-bold">
+                                                                <span className="text-white">Gross Salary</span>
+                                                                <span className="text-green-400 font-mono">₹ {gross} / month</span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {viewTab === 'documents' && (
+                                        <div className="space-y-4">
+                                            {['Resume/CV', 'Offer Letter', 'ID Proof (Aadhar)', 'PAN Card', 'Education Certificates'].map((doc, i) => (
+                                                <div key={i} className="flex items-center justify-between p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-slate-700 transition-colors">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 bg-slate-900 rounded-lg text-slate-500">
+                                                            <FileText size={18} />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-medium text-slate-200">{doc}</p>
+                                                            <p className="text-xs text-slate-500">Not uploaded</p>
+                                                        </div>
+                                                    </div>
+                                                    <button className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 px-3 py-1.5 rounded-lg hover:bg-indigo-500/10 transition-colors">
+                                                        Upload
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="mt-auto p-6 border-t border-slate-800 flex justify-end gap-3 bg-slate-900">
+                                    {isEditing ? (
+                                        <>
+                                            <button 
+                                                onClick={() => setIsEditing(false)}
+                                                className="px-4 py-2 border border-slate-700 text-slate-300 rounded-lg hover:bg-slate-800 transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button 
+                                                onClick={handleUpdateEmployee}
+                                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors flex items-center gap-2"
+                                            >
+                                                <CheckCircle size={18} />
+                                                Save Changes
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <button 
+                                                onClick={() => setIsEditing(true)}
+                                                className="px-4 py-2 text-indigo-400 border border-indigo-500/30 rounded-lg hover:bg-indigo-500/10 transition-colors"
+                                            >
+                                                Edit Profile
+                                            </button>
+                                            <button 
+                                                onClick={() => setSelectedEmployee(null)}
+                                                className="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors"
+                                            >
+                                                Close
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>

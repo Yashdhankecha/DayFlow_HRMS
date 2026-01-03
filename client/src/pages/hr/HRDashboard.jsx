@@ -9,13 +9,14 @@ import {
   Clock, FileText, Briefcase, TrendingUp,
   AlertCircle, MoreHorizontal
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 
 const HRDashboard = () => {
     const { user } = useAuth();
     const [stats, setStats] = useState([]);
     const [loading, setLoading] = useState(true);
     const [pendingRequests, setPendingRequests] = useState([]);
+    const [recentActivity, setRecentActivity] = useState([]);
     const [currentDate, setCurrentDate] = useState(new Date());
 
     useEffect(() => {
@@ -24,6 +25,7 @@ const HRDashboard = () => {
                const { data } = await api.get('/hr/dashboard-stats');
                setStats(data.data.stats);
                setPendingRequests(data.data.pendingRequests);
+               setRecentActivity(data.data.recentActivity || []);
             } catch (error) {
                console.error("Error fetching dashboard stats", error);
             } finally {
@@ -255,16 +257,16 @@ const HRDashboard = () => {
                     >
                          <h3 className="text-lg font-bold text-white mb-4">Recent Activity</h3>
                          <div className="space-y-6 relative before:absolute before:inset-y-0 before:left-2 before:w-0.5 before:bg-slate-800">
-                            {[
-                                { title: 'New Employee Added', time: '2 hours ago', desc: 'Sarah Johnson joined Marketing' },
-                                { title: 'Payroll Run', time: 'Yesterday', desc: 'Monthly payroll for Oct completed' },
-                                { title: 'Policy Update', time: '3 days ago', desc: 'Updated Remote Work guidelines' },
-                            ].map((activity, i) => (
+                            {recentActivity.length === 0 ? (
+                                <p className="text-sm text-slate-500 pl-8">No recent activity.</p>
+                            ) : recentActivity.map((activity, i) => (
                                 <div key={i} className="relative pl-8">
                                     <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full border-2 border-slate-900 bg-slate-700"></div>
                                     <h4 className="text-sm font-medium text-slate-200">{activity.title}</h4>
                                     <p className="text-xs text-slate-500 mt-0.5">{activity.desc}</p>
-                                    <span className="text-[10px] text-slate-600 mt-1 block">{activity.time}</span>
+                                    <span className="text-[10px] text-slate-600 mt-1 block">
+                                        {formatDistanceToNow(new Date(activity.date), { addSuffix: true })}
+                                    </span>
                                 </div>
                             ))}
                          </div>

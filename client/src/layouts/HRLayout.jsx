@@ -20,7 +20,6 @@ const HRLayout = () => {
         { label: 'Attendance', icon: <Calendar size={20}/>, path: '/dashboard/hr/attendance' },
         { label: 'Leaves', icon: <FileText size={20}/>, path: '/dashboard/hr/leaves' },
         { label: 'Payroll', icon: <FileText size={20}/>, path: '/dashboard/hr/payroll' },
-        { label: 'Settings', icon: <Settings size={20}/>, path: '/dashboard/hr/settings' },
     ];
 
     return (
@@ -111,20 +110,27 @@ const HRLayout = () => {
 
                 {/* User Profile / Logout */}
                 <div className="p-4 border-t border-slate-800/50 bg-slate-900/30">
-                    <div className={`flex items-center gap-3 ${!isSidebarOpen && 'justify-center'}`}>
-                        <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
-                            {user?.name?.[0] || 'U'}
-                        </div>
-                        {isSidebarOpen && (
-                            <div className="flex-1 overflow-hidden">
-                                <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-                                <p className="text-xs text-slate-500 truncate">HR Officer</p>
+                    <div className={`flex items-center gap-2 ${!isSidebarOpen && 'justify-center'}`}>
+                        <Link 
+                            to="/dashboard/hr/profile" 
+                            className={`flex items-center gap-3 flex-1 min-w-0 p-1.5 rounded-lg transition-colors hover:bg-slate-800 ${!isSidebarOpen && 'justify-center'}`}
+                        >
+                            <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
+                                {user?.name?.[0] || 'U'}
                             </div>
-                        )}
+                            {isSidebarOpen && (
+                                <div className="flex-1 overflow-hidden">
+                                    <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+                                    <p className="text-xs text-slate-500 truncate">HR Officer</p>
+                                </div>
+                            )}
+                        </Link>
+                        
                         {isSidebarOpen && (
                             <button 
                                 onClick={logout}
-                                className="p-2 text-slate-400 hover:text-red-400 transition-colors"
+                                className="p-2 text-slate-400 hover:text-red-400 transition-colors hover:bg-slate-800 rounded-lg"
+                                title="Logout"
                             >
                                 <LogOut size={18} />
                             </button>

@@ -55,8 +55,15 @@ const employeeSchema = new mongoose.Schema({
     bankName: String,
     ifscCode: String,
     panNumber: String,
-    uanNumber: String
+    uanNumber: String,
 
+    // Payroll Info
+    salaryStructure: {
+        basicSalary: { type: Number, default: 0 },
+        hra: { type: Number, default: 0 },
+        specialAllowance: { type: Number, default: 0 },
+        otherAllowances: { type: Number, default: 0 }
+    }
 }, { timestamps: true });
 
 // Virtual to get subordinates

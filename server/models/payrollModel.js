@@ -7,40 +7,45 @@ const payrollSchema = new mongoose.Schema({
         required: true
     },
     month: {
-        type: String, // e.g. "October 2024" or use Date for structured query
-        required: true
+        type: String,
+        required: true, // e.g., "October"
     },
     year: {
         type: Number,
-        required: true
+        required: true // e.g., 2024
     },
-    baseSalary: {
-        type: Number,
-        required: true
+    salarySnapshot: {
+        basicSalary: { type: Number, default: 0 },
+        hra: { type: Number, default: 0 },
+        specialAllowance: { type: Number, default: 0 },
+        otherAllowances: { type: Number, default: 0 },
+        grossSalary: { type: Number, default: 0 } // Total components
     },
-    bonus: {
-        type: Number,
-        default: 0
+    attendanceSummary: {
+        workingDays: { type: Number, default: 30 },
+        presentDays: { type: Number, default: 0 },
+        absentDays: { type: Number, default: 0 }
     },
-    deductions: {
-        type: Number,
-        default: 0
+    calculations: {
+        perDaySalary: { type: Number, default: 0 },
+        grossEarnings: { type: Number, default: 0 } // perDay * presentDays
     },
-    netSalary: {
+    finalPay: {
         type: Number,
         required: true
     },
     status: {
         type: String,
-        enum: ['Paid', 'Processing', 'Pending', 'Failed'],
-        default: 'Processing'
+        enum: ['Generated', 'Paid'],
+        default: 'Generated'
     },
-    paymentDate: {
-        type: Date
+    generatedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
 }, { timestamps: true });
 
-// Ensure one payroll per employee per month
+// Prevent duplicate payroll for same employee/month/year
 payrollSchema.index({ employee: 1, month: 1, year: 1 }, { unique: true });
 
 const Payroll = mongoose.model('Payroll', payrollSchema);

@@ -19,6 +19,7 @@ const hrRoutes = require('./routes/hrRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const payrollRoutes = require('./routes/payrollRoutes');
 const leaveRoutes = require('./routes/leaveRoutes');
+const companyRoutes = require('./routes/companyRoutes');
 const { protect, restrictTo } = require('./middlewares/authMiddleware');
 
 const app = express();
@@ -35,6 +36,7 @@ app.use('/api/hr', hrRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/payroll', payrollRoutes);
 app.use('/api/leaves', leaveRoutes);
+app.use('/api/company', companyRoutes);
 
 
 // Protected Routes Example

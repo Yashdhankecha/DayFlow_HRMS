@@ -52,6 +52,9 @@ const leaveSchema = new mongoose.Schema({
     },
     rejectionReason: {
         type: String
+    },
+    comments: {
+        type: String
     }
 }, { timestamps: true });
 

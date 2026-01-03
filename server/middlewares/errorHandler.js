@@ -4,6 +4,10 @@ const globalErrorHandler = (err, req, res, next) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
 
+    // Always log errors to console for debugging
+    console.error('❌ ERROR:', err.message);
+    console.error('Stack:', err.stack);
+
     if (process.env.NODE_ENV === 'development') {
         res.status(err.statusCode).json({
             status: err.status,

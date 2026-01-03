@@ -23,7 +23,15 @@ const Login = () => {
       if (user.isFirstLogin) {
         navigate('/change-password');
       } else {
-        navigate('/dashboard');
+        // role‑based redirection
+        const role = user.role;
+        if (role === 'SUPER_ADMIN' || role === 'HR_OFFICER') {
+          navigate('/dashboard/admin');
+        } else if (role === 'MANAGER') {
+          navigate('/dashboard/manager');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to login');

@@ -4,8 +4,11 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import ChangePassword from './pages/ChangePassword';
 import Dashboard from './pages/Dashboard';
-import PrivateRoute from './routes/PrivateRoute';
+import AdminDashboard from './pages/AdminDashboard';
+import HRDashboard from './pages/HRDashboard';
+import ManagerDashboard from './pages/ManagerDashboard';
 import DashboardLayout from './layouts/DashboardLayout';
+import PrivateRoute from './routes/PrivateRoute';
 
 import { Toaster } from 'react-hot-toast';
 
@@ -22,7 +25,14 @@ function App() {
           {/* Protected Routes */}
           <Route element={<PrivateRoute />}>
              <Route path="/change-password" element={<ChangePassword />} />
-             
+             <Route path="/dashboard" element={<DashboardLayout />}>
+   <Route index element={<Dashboard />} />
+   <Route path="admin" element={<AdminDashboard />} />
+   <Route path="hr" element={<HRDashboard />} />
+   <Route path="manager" element={<ManagerDashboard />} />
+   {/* Add more sub‑routes here like /dashboard/settings */}
+   <Route path="*" element={<Navigate to="/dashboard" replace />} />
+</Route>
              <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<Dashboard />} />
                 {/* Add more sub-routes here like /dashboard/settings */}

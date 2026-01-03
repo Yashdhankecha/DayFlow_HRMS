@@ -9,9 +9,14 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 
-[**🔴 LIVE DEMO LINK**](https://dayflowhrms.netlify.app/)
+[**🔴 LIVE DEMO**](https://dayflowhrms.netlify.app/)
 
-*(Replace the link above with your actual deployment URL)*
+### 🔑 Test Credentials
+
+| Role | Employee ID | Password |
+|------|-------------|----------|
+| **HR** | OIDIVY20260001 | 123qwe |
+| **Employee** | OIHAVY20260002 | 123qwe |
 
 <p align="center">
   <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1470&auto=format&fit=crop" alt="DayFlow HRMS Dashboard" width="800" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">

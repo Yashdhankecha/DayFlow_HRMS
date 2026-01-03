@@ -26,7 +26,32 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+        const allowedOrigins = [
+            'http://localhost:5173',
+            'http://localhost:5000',
+            'https://dayflowhrms.netlify.app',
+            process.env.FRONTEND_URL
+        ];
+
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        // Normalize origin (remove trailing slash if present)
+        const normalizedOrigin = origin.replace(/\/$/, '');
+
+        // Check if normalized origin matches any allowed origin (also normalized)
+        const isAllowed = allowedOrigins.some(allowed =>
+            allowed && allowed.replace(/\/$/, '') === normalizedOrigin
+        );
+
+        if (isAllowed) {
+            callback(null, true);
+        } else {
+            console.log('Blocked by CORS:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 app.use(morgan('dev'));
@@ -40,6 +65,11 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/payroll', payrollRoutes);
 app.use('/api/leaves', leaveRoutes);
 app.use('/api/company', companyRoutes);
+
+// Root Route
+app.get('/', (req, res) => {
+    res.status(200).send('API is running...');
+});
 
 // Health Check
 app.get('/api/health', (req, res) => {

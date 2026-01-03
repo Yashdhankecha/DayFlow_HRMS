@@ -41,6 +41,11 @@ app.use('/api/payroll', payrollRoutes);
 app.use('/api/leaves', leaveRoutes);
 app.use('/api/company', companyRoutes);
 
+// Root Route
+app.get('/', (req, res) => {
+    res.status(200).send('API is running...');
+});
+
 // Health Check
 app.get('/api/health', (req, res) => {
     res.status(200).json({

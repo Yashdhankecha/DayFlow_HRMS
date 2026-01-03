@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     User, Mail, Phone, MapPin, Calendar, Briefcase,
     Building2, CreditCard, Shield, FileText, Lock,
-    Pencil, Save, X, Loader
+    Pencil, Save, X, Loader, Banknote
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -115,8 +115,7 @@ const EmployeeProfile = () => {
     const tabs = [
         { id: 'resume', label: 'Resume', icon: FileText },
         { id: 'private', label: 'Private Info', icon: User },
-        { id: 'salary', label: 'Salary Info', icon: CreditCard },
-        { id: 'security', label: 'Security', icon: Shield },
+        { id: 'salary', label: 'Salary Info', icon: CreditCard }
     ];
 
     return (
@@ -129,11 +128,11 @@ const EmployeeProfile = () => {
                 </div>
 
                 {activeTab === 'private' && (
-                    <div>
+                    <div className="relative z-20">
                         {!isEditing ? (
                             <button
                                 onClick={() => setIsEditing(true)}
-                                className="flex items-center gap-2 px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-700 shadow-lg"
+                                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white rounded-xl transition-all border border-primary-400/20 shadow-lg shadow-primary-500/20 active:scale-95 font-semibold"
                             >
                                 <Pencil size={18} />
                                 Edit Profile
@@ -142,14 +141,14 @@ const EmployeeProfile = () => {
                             <div className="flex items-center gap-3">
                                 <button
                                     onClick={handleCancel}
-                                    className="flex items-center gap-2 px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-700"
+                                    className="flex items-center gap-2 px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl transition-all border border-slate-700 shadow-md active:scale-95 font-medium"
                                 >
                                     <X size={18} />
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleSave}
-                                    className="flex items-center gap-2 px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors shadow-lg shadow-primary-500/20"
+                                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white rounded-xl transition-all shadow-lg shadow-green-500/20 border border-green-500/20 active:scale-95 font-semibold"
                                 >
                                     <Save size={18} />
                                     Save Changes
@@ -229,25 +228,26 @@ const EmployeeProfile = () => {
             </div>
 
             {/* Navigation Tabs */}
-            <div className="border-b border-slate-800 flex gap-8">
-                {tabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`
-                            pb-4 px-2 text-sm font-medium transition-all relative flex items-center gap-2
-                            ${activeTab === tab.id ? 'text-primary-400' : 'text-slate-400 hover:text-slate-200'}
-                        `}
-                    >
-                        {tab.label}
-                        {activeTab === tab.id && (
-                            <motion.div
-                                layoutId="activeTab"
-                                className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500 rounded-full"
-                            />
-                        )}
-                    </button>
-                ))}
+            <div className="flex flex-wrap gap-4 p-1.5 bg-slate-900/80 backdrop-blur border border-slate-800 rounded-2xl w-fit">
+                {tabs.map(tab => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`
+                                px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2.5 relative
+                                ${isActive
+                                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20'
+                                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}
+                            `}
+                        >
+                            <Icon size={18} className={isActive ? 'text-white' : 'text-slate-500'} />
+                            {tab.label}
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Content Area */}
@@ -377,19 +377,59 @@ const EmployeeProfile = () => {
                     )}
 
                     {activeTab === 'salary' && (
-                        <EmptyState
-                            icon={CreditCard}
-                            title="Salary Information"
-                            description="Salary structure, payslips and tax documents."
-                        />
-                    )}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <SectionCard title="Direct Compensation">
+                                <div className="grid grid-cols-1 gap-6">
+                                    <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-green-500/20 p-6 rounded-2xl flex items-center justify-between">
+                                        <div>
+                                            <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">Annual CTC</p>
+                                            <h3 className="text-3xl font-bold text-white mt-1">
+                                                ₹ {profile?.salary?.ctc?.toLocaleString('en-IN') || 0}
+                                            </h3>
+                                        </div>
+                                        <div className="p-3 bg-green-500/20 rounded-xl text-green-400">
+                                            <Banknote size={32} />
+                                        </div>
+                                    </div>
 
-                    {activeTab === 'security' && (
-                        <EmptyState
-                            icon={Shield}
-                            title="Security Settings"
-                            description="Password, 2FA and login activity logs."
-                        />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                                            <p className="text-slate-400 text-xs uppercase">Monthly Net Salary</p>
+                                            <p className="text-xl font-bold text-white mt-1">₹ {profile?.salary?.netSalary?.toLocaleString('en-IN') || 0}</p>
+                                        </div>
+                                        <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                                            <p className="text-slate-400 text-xs uppercase">Basic Pay</p>
+                                            <p className="text-xl font-bold text-white mt-1">₹ {profile?.salary?.basic?.toLocaleString('en-IN') || 0}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </SectionCard>
+
+                            <SectionCard title="Salary Breakdown">
+                                <div className="space-y-4 bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+                                    <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+                                        <span className="text-slate-400">Basic Salary</span>
+                                        <span className="text-white font-medium">₹ {profile?.salary?.basic?.toLocaleString('en-IN') || 0}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+                                        <span className="text-slate-400">HRA</span>
+                                        <span className="text-white font-medium">₹ {profile?.salary?.hra?.toLocaleString('en-IN') || 0}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+                                        <span className="text-slate-400">Special Allowances</span>
+                                        <span className="text-white font-medium">₹ {profile?.salary?.allowances?.toLocaleString('en-IN') || 0}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center pt-2 text-red-400">
+                                        <span>Deductions (PF/Tax)</span>
+                                        <span className="font-medium">- ₹ {profile?.salary?.deductions?.toLocaleString('en-IN') || 0}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center pt-4 border-t border-slate-700">
+                                        <span className="text-primary-400 font-bold">Net Payable</span>
+                                        <span className="text-white font-bold text-lg">₹ {profile?.salary?.netSalary?.toLocaleString('en-IN') || 0}</span>
+                                    </div>
+                                </div>
+                            </SectionCard>
+                        </div>
                     )}
                 </motion.div>
             </AnimatePresence>

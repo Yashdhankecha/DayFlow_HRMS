@@ -83,12 +83,6 @@ const EmployeeLayout = () => {
 
                         {/* Right Section */}
                         <div className="flex items-center gap-3">
-                            {/* Notifications */}
-                            <button className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors relative hidden sm:block">
-                                <Bell size={20} />
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-slate-950"></span>
-                            </button>
-
                             {/* User Dropdown - Desktop */}
                             <div className="hidden sm:block relative" ref={userMenuRef}>
                                 <button

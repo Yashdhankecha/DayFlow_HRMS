@@ -202,19 +202,94 @@ exports.punch = catchAsync(async (req, res, next) => {
     }
 });
 
+const Leave = require('../models/leaveModel');
+
 exports.getHistory = catchAsync(async (req, res, next) => {
     const employee = await Employee.findOne({ user: req.user._id });
     if (!employee) return next(new AppError('Employee not found', 404));
 
-    const history = await Attendance.find({ employee: employee._id })
-        .sort({ date: -1 })
-        .limit(30)
-        .lean();
+    // Get strictly last 30 days records
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    thirtyDaysAgo.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Fetch Attendance
+    const records = await Attendance.find({
+        employee: employee._id,
+        date: { $gte: thirtyDaysAgo }
+    }).sort({ date: -1 }).lean();
+
+    // Fetch Approved Leaves overlapping the window
+    const leaves = await Leave.find({
+        employee: employee._id,
+        status: 'APPROVED',
+        $or: [
+            { startDate: { $lte: today }, endDate: { $gte: thirtyDaysAgo } }
+        ]
+    }).lean();
+
+    // Map existing records by Date string (YYYY-MM-DD) for O(1) lookup
+    const recordMap = new Map();
+    records.forEach(r => {
+        const dateStr = new Date(r.date).toDateString();
+        recordMap.set(dateStr, r);
+    });
+
+    // Generate full 30 day history including absences and leaves
+    const fullHistory = [];
+
+    // Helper to check if date is in any leave
+    const getLeaveForDate = (dateObj) => {
+        return leaves.find(l => {
+            const start = new Date(l.startDate);
+            const end = new Date(l.endDate);
+            start.setHours(0, 0, 0, 0);
+            end.setHours(0, 0, 0, 0);
+            return dateObj >= start && dateObj <= end;
+        });
+    };
+
+    for (let i = 0; i < 30; i++) {
+        const d = new Date();
+        d.setDate(today.getDate() - i);
+        d.setHours(0, 0, 0, 0);
+        const dateStr = d.toDateString();
+
+        if (recordMap.has(dateStr)) {
+            fullHistory.push(recordMap.get(dateStr));
+        } else {
+            // Check if on leave
+            const activeLeave = getLeaveForDate(d);
+
+            if (activeLeave) {
+                fullHistory.push({
+                    _id: `leave-${dateStr}`,
+                    date: d,
+                    status: 'ON LEAVE',
+                    punches: [],
+                    leaveType: activeLeave.type // Optional: pass leave type
+                });
+            } else {
+                // Determine if Absent or Holiday (Sunday)
+                if (d <= today && d.getDay() !== 0) {
+                    fullHistory.push({
+                        _id: `absent-${dateStr}`,
+                        date: d,
+                        status: 'ABSENT',
+                        punches: []
+                    });
+                }
+            }
+        }
+    }
 
     res.status(200).json({
         status: 'success',
-        results: history.length,
-        data: history
+        results: fullHistory.length,
+        data: fullHistory
     });
 });
 

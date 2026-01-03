@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import {
     Calendar, Clock, FileText, TrendingUp,
     CheckCircle, XCircle, AlertCircle, Bell,
-    ArrowRight, Users, Briefcase
+    ArrowRight, Users, Briefcase, History
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -30,12 +30,20 @@ const EmployeeDashboard = () => {
         try {
             setLoading(true);
             const [attendanceRes, leavesRes] = await Promise.all([
-                api.get('/attendance/my-attendance').catch(() => ({ data: { data: { stats: { total: 0, present: 0, absent: 0, rate: 0 }, records: [] } } })),
+                api.get('/attendance/history').catch(() => ({ data: { data: [] } })),
                 api.get('/leaves/my-leaves').catch(() => ({ data: { data: { stats: { pending: 0, approved: 0, available: 15 }, leaves: [] } } }))
             ]);
 
-            const attendanceStats = attendanceRes.data.data.stats || { total: 0, present: 0, absent: 0, rate: 0 };
-            const attendanceRecords = attendanceRes.data.data.records || [];
+            const attendanceRecords = attendanceRes.data.data || [];
+
+            // Calculate stats from records (Last 30 days)
+            const total = attendanceRecords.length;
+            const present = attendanceRecords.filter(r => r.status === 'PRESENT').length;
+            const absent = attendanceRecords.filter(r => r.status === 'ABSENT').length; // Or total - present if we assume strict daily records
+            // For rate, let's use populated days count as denominator or 30? valid records count is safer.
+            const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+
+            const attendanceStats = { total, present, absent, rate };
             const leaveStats = leavesRes.data.data.stats || { pending: 0, approved: 0, available: 15 };
             const leaves = leavesRes.data.data.leaves || [];
 
@@ -101,6 +109,49 @@ const EmployeeDashboard = () => {
                     time: formatUpcomingDate(new Date(leave.startDate))
                 }));
 
+            // Generate dynamic recent activity
+            const activities = [];
+
+            // Add attendance activities
+            attendanceRecords.forEach(record => {
+                if (record.status === 'PRESENT') {
+                    activities.push({
+                        type: 'attendance',
+                        date: new Date(record.date),
+                        icon: CheckCircle,
+                        title: 'Work Day',
+                        description: `Marked present (${record.punches?.length || 0} punches)`,
+                        time: formatTimeAgo(new Date(record.date))
+                    });
+                } else if (record.status === 'ABSENT' || record.status === 'LATE') {
+                    activities.push({
+                        type: 'alert',
+                        date: new Date(record.date),
+                        icon: AlertCircle,
+                        title: record.status,
+                        description: `Marked ${record.status.toLowerCase()}`,
+                        time: formatTimeAgo(new Date(record.date))
+                    });
+                }
+            });
+
+            // Add leave activities
+            leaves.forEach(leave => {
+                activities.push({
+                    type: 'leave',
+                    date: new Date(leave.appliedOn),
+                    icon: Clock,
+                    title: 'Leave Request',
+                    description: `${leave.type} - ${leave.status}`,
+                    time: formatTimeAgo(new Date(leave.appliedOn))
+                });
+            });
+
+            // Sort by date desc and take top 5
+            const recentActivity = activities
+                .sort((a, b) => b.date - a.date)
+                .slice(0, 5);
+
             setDashboardData({
                 attendance: attendanceStats,
                 leaves: leaveStats,
@@ -110,10 +161,8 @@ const EmployeeDashboard = () => {
                     avgCheckIn
                 },
                 upcomingEvents: upcomingLeaves,
-                recentActivity: [
-                    { type: 'attendance', icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-500/10', title: 'Checked In', description: 'You checked in today', time: '2 hours ago' },
-                    { type: 'leave', icon: Clock, color: 'text-orange-400', bg: 'bg-orange-500/10', title: 'Leave Request Pending', description: 'Waiting for approval', time: '1 day ago' },
-                    { type: 'notification', icon: Bell, color: 'text-blue-400', bg: 'bg-blue-500/10', title: 'System Update', description: 'Monthly payroll processed', time: '3 days ago' }
+                recentActivity: recentActivity.length > 0 ? recentActivity : [
+                    { type: 'info', icon: Bell, title: 'Welcome', description: 'No recent activity yet', time: 'Just now' }
                 ]
             });
         } catch (error) {
@@ -142,10 +191,31 @@ const EmployeeDashboard = () => {
         }
     };
 
+    const formatTimeAgo = (date) => {
+        const seconds = Math.floor((new Date() - date) / 1000);
+
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + " years ago";
+
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + " months ago";
+
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + " days ago";
+
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + " hours ago";
+
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + " minutes ago";
+
+        return "Just now";
+    };
+
     const stats = [
         {
             label: 'Attendance Rate',
-            value: `${dashboardData.attendance.rate?.toFixed(1) || 0}%`,
+            value: `${dashboardData.attendance.rate?.toFixed(1) || 0} % `,
             icon: TrendingUp,
             color: 'from-blue-500 to-blue-600',
             iconBg: 'bg-blue-500/20',
@@ -196,15 +266,25 @@ const EmployeeDashboard = () => {
     };
 
     return (
-        <div className="space-y-8">
-            {/* Welcome Header */}
-            <div>
-                <h1 className="text-3xl font-bold text-white tracking-tight">
-                    Welcome back, {user?.name?.split(' ')[0]}! 👋
-                </h1>
-                <p className="text-slate-400 mt-1">
-                    {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                </p>
+        <div className="space-y-8 animate-in fade-in duration-500">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-white tracking-tight">
+                        Dashboard
+                    </h1>
+                    <p className="text-slate-400 mt-1">
+                        Welcome back, <span className="text-white font-medium">{user?.name}</span>. Here's what's happening today.
+                    </p>
+                </div>
+                <div className="text-right hidden md:block">
+                    <p className="text-3xl font-light text-slate-200">
+                        {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    <p className="text-sm text-primary-400 font-medium">
+                        {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+                    </p>
+                </div>
             </div>
 
             {/* Stats Grid */}
@@ -221,7 +301,7 @@ const EmployeeDashboard = () => {
                             key={idx}
                             variants={item}
                             onClick={stat.action}
-                            className="bg-slate-900/50 backdrop-blur border border-slate-800 rounded-2xl p-6 hover:bg-slate-900 transition-all cursor-pointer group"
+                            className="bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:bg-slate-800/60 transition-all cursor-pointer group hover:border-primary-500/20 hover:shadow-lg hover:shadow-primary-500/5"
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className={`${stat.iconBg} p-3 rounded-xl ${stat.iconColor} group-hover:scale-110 transition-transform`}>
@@ -230,9 +310,12 @@ const EmployeeDashboard = () => {
                                 <ArrowRight className="text-slate-600 group-hover:text-primary-400 transition-colors" size={20} />
                             </div>
                             <div className="space-y-1">
-                                <h3 className="text-3xl font-bold text-white">{stat.value}</h3>
-                                <p className="text-slate-500 font-medium text-sm">{stat.label}</p>
-                                <p className="text-slate-600 text-xs">{stat.subtext}</p>
+                                <h3 className="text-3xl font-bold text-white tracking-tight">{stat.value}</h3>
+                                <p className="text-slate-400 font-medium text-sm border-b border-dashed border-slate-700/50 pb-2 mb-2 w-fit">{stat.label}</p>
+                                <p className="text-slate-500 text-xs flex items-center gap-1">
+                                    <span className="w-1 h-1 rounded-full bg-slate-600"></span>
+                                    {stat.subtext}
+                                </p>
                             </div>
                         </motion.div>
                     );
@@ -241,18 +324,18 @@ const EmployeeDashboard = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Recent Activity */}
-                <div className="lg:col-span-2 bg-slate-900/50 backdrop-blur border border-slate-800 rounded-2xl p-6">
+                <div className="lg:col-span-2 bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <Bell className="text-primary-400" size={20} />
+                        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                            <History className="text-primary-400" size={20} />
                             Recent Activity
                         </h2>
-                        <button className="text-sm text-primary-400 hover:text-primary-300 transition-colors font-medium">
-                            View All
+                        <button onClick={() => navigate('/dashboard/employee/attendance')} className="text-xs text-slate-400 hover:text-white transition-colors border border-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-800">
+                            View Log
                         </button>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="relative pl-4 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-4 before:w-[2px] before:bg-slate-800/50">
                         {dashboardData.recentActivity.map((activity, index) => {
                             const ActivityIcon = activity.icon;
                             return (
@@ -261,18 +344,20 @@ const EmployeeDashboard = () => {
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: index * 0.1 }}
-                                    className="flex items-start gap-4 p-4 rounded-xl bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                                    className="relative pl-6"
                                 >
-                                    <div className={`${activity.bg} p-3 rounded-lg ${activity.color}`}>
-                                        <ActivityIcon size={20} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="text-white font-semibold">{activity.title}</h3>
-                                        <p className="text-slate-400 text-sm mt-1">{activity.description}</p>
-                                        <p className="text-slate-500 text-xs mt-2 flex items-center gap-1">
-                                            <Clock size={12} />
+                                    <div className={`absolute left-[-21px] top-1 w-6 h-6 rounded-full border-4 border-slate-950 ${activity.type === 'attendance' ? 'bg-emerald-500' : activity.type === 'leave' ? 'bg-amber-500' : 'bg-blue-500'} shadow-[0_0_0_1px_rgba(255,255,255,0.05)]`}></div>
+
+                                    <div className="bg-slate-800/30 rounded-xl p-4 hover:bg-slate-800/50 transition-colors border border-white/5 flex items-start justify-between group">
+                                        <div>
+                                            <h3 className="text-white font-semibold flex items-center gap-2 text-sm group-hover:text-primary-200 transition-colors">
+                                                {activity.title}
+                                            </h3>
+                                            <p className="text-slate-400 text-xs mt-1 leading-relaxed max-w-md">{activity.description}</p>
+                                        </div>
+                                        <span className="text-[10px] text-slate-500 font-medium whitespace-nowrap bg-slate-900/50 px-2.5 py-1 rounded-md border border-white/5">
                                             {activity.time}
-                                        </p>
+                                        </span>
                                     </div>
                                 </motion.div>
                             );
@@ -280,49 +365,56 @@ const EmployeeDashboard = () => {
                     </div>
                 </div>
 
-                {/* Quick Info */}
+                {/* Quick Info & Upcoming */}
                 <div className="space-y-6">
 
                     {/* This Week Summary */}
-                    <div className="bg-slate-900/50 backdrop-blur border border-slate-800 rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <Briefcase size={18} className="text-primary-400" />
+                    <div className="bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+                        <h3 className="text-lg font-bold text-white mb-5 flex items-center gap-2">
+                            <Briefcase size={18} className="text-emerald-400" />
                             This Week
                         </h3>
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-slate-400 text-sm">Days Worked</span>
-                                <span className="text-white font-bold">{dashboardData.weeklyStats.daysWorked}</span>
+                            <div className="flex items-center justify-between p-3 bg-slate-800/30 rounded-xl border border-white/5">
+                                <span className="text-slate-400 text-sm font-medium">Days Worked</span>
+                                <span className="text-white font-bold font-mono">{dashboardData.weeklyStats.daysWorked}</span>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-slate-400 text-sm">Hours Logged</span>
-                                <span className="text-white font-bold">{dashboardData.weeklyStats.hoursLogged}</span>
+                            <div className="flex items-center justify-between p-3 bg-slate-800/30 rounded-xl border border-white/5">
+                                <span className="text-slate-400 text-sm font-medium">Hours Logged</span>
+                                <span className="text-white font-bold font-mono">{dashboardData.weeklyStats.hoursLogged}</span>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-slate-400 text-sm">Avg. Check-in</span>
-                                <span className="text-white font-bold">{dashboardData.weeklyStats.avgCheckIn}</span>
+                            <div className="flex items-center justify-between p-3 bg-slate-800/30 rounded-xl border border-white/5">
+                                <span className="text-slate-400 text-sm font-medium">Avg. Check-in</span>
+                                <span className="text-white font-bold font-mono">{dashboardData.weeklyStats.avgCheckIn}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Upcoming */}
-                    <div className="bg-slate-900/50 backdrop-blur border border-slate-800 rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <Calendar size={18} className="text-primary-400" />
-                            Upcoming
+                    <div className="bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+                        <h3 className="text-lg font-bold text-white mb-5 flex items-center gap-2">
+                            <Calendar size={18} className="text-amber-400" />
+                            Upcoming Events
                         </h3>
                         <div className="space-y-3">
                             {dashboardData.upcomingEvents.length > 0 ? (
                                 dashboardData.upcomingEvents.map((event, index) => (
-                                    <div key={index} className="p-3 bg-slate-800/50 rounded-lg">
-                                        <p className="text-white text-sm font-medium">{event.title}</p>
-                                        <p className="text-slate-500 text-xs mt-1">{event.time}</p>
-                                        <p className="text-slate-600 text-xs">{event.description}</p>
+                                    <div key={index} className="p-4 bg-slate-800/30 rounded-xl hover:bg-slate-800/50 transition-colors border border-white/5 group">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <p className="text-white font-semibold text-sm group-hover:text-primary-300 transition-colors">{event.title}</p>
+                                            <span className="text-primary-400 text-[10px] font-bold bg-primary-500/10 px-2 py-1 rounded-md border border-primary-500/20">
+                                                {event.time}
+                                            </span>
+                                        </div>
+                                        <p className="text-slate-500 text-xs font-medium flex items-center gap-1">
+                                            <Calendar size={12} />
+                                            {event.description}
+                                        </p>
                                     </div>
                                 ))
                             ) : (
-                                <div className="p-3 bg-slate-800/50 rounded-lg text-center">
-                                    <p className="text-slate-500 text-sm">No upcoming events</p>
+                                <div className="p-4 bg-slate-800/20 rounded-xl text-center border border-dashed border-slate-800">
+                                    <p className="text-slate-500 text-sm italic">No upcoming leaves</p>
                                 </div>
                             )}
                         </div>

@@ -46,7 +46,37 @@ exports.getDashboardStats = catchAsync(async (req, res, next) => {
             date: new Date(leave.startDate).toLocaleDateString(),
             status: 'pending' // standardized for frontend
         };
-    }).filter(req => req !== null);
+    }).filter(req => req != null);
+
+    // 5. Recent Activity
+    // Fetch recent employees
+    const recentEmployees = await Employee.find()
+        .sort('-createdAt')
+        .limit(3)
+        .populate('department', 'name')
+        .select('firstName lastName department createdAt');
+
+    // Fetch recent leave updates (approved/rejected)
+    const recentLeaves = await Leave.find({ status: { $ne: 'Pending' } })
+        .sort('-updatedAt')
+        .limit(3)
+        .populate('employee', 'firstName lastName')
+        .select('employee status updatedAt');
+
+    const activities = [
+        ...recentEmployees.map(emp => ({
+            type: 'employee',
+            date: emp.createdAt,
+            title: 'New Employee',
+            desc: `${emp.firstName} ${emp.lastName} joined ${emp.department?.name || 'Company'}`
+        })),
+        ...recentLeaves.map(leave => ({
+            type: 'leave',
+            date: leave.updatedAt,
+            title: 'Leave Update',
+            desc: `${leave.employee?.firstName || 'Employee'}'s leave was ${leave.status.toLowerCase()}`
+        }))
+    ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
 
     res.status(200).json({
         status: 'success',
@@ -71,7 +101,8 @@ exports.getDashboardStats = catchAsync(async (req, res, next) => {
                     trendUp: false
                 }
             ],
-            pendingRequests
+            pendingRequests,
+            recentActivity: activities
         }
     });
 });

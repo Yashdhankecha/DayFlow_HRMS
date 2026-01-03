@@ -77,6 +77,8 @@ exports.createEmployee = catchAsync(async (req, res, next) => {
     }
 });
 
+const Attendance = require('../models/attendanceModel');
+
 exports.getAllEmployees = catchAsync(async (req, res, next) => {
     const employees = await Employee.find()
         .populate({
@@ -87,12 +89,36 @@ exports.getAllEmployees = catchAsync(async (req, res, next) => {
         .populate({
             path: 'manager',
             select: 'firstName lastName'
-        });
+        })
+        .lean();
+
+    // Get Today's Date Range
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Fetch Attendance for Today
+    const attendanceRecords = await Attendance.find({
+        date: { $gte: startOfDay, $lte: endOfDay }
+    }).select('employee status');
+
+    // Create Map: EmployeeID -> Status
+    const attendanceMap = {};
+    attendanceRecords.forEach(record => {
+        attendanceMap[record.employee.toString()] = record.status;
+    });
+
+    // Append Status
+    const employeesWithStatus = employees.map(emp => ({
+        ...emp,
+        todayStatus: attendanceMap[emp._id.toString()] || 'Absent'
+    }));
 
     res.status(200).json({
         status: 'success',
-        results: employees.length,
-        data: employees
+        results: employeesWithStatus.length,
+        data: employeesWithStatus
     });
 });
 
@@ -257,6 +283,35 @@ exports.toggleEmployeeStatus = catchAsync(async (req, res, next) => {
     res.status(200).json({
         status: 'success',
         message: `Employee ${user.isActive ? 'activated' : 'deactivated'} successfully`
+    });
+});
+
+exports.updateEmployee = catchAsync(async (req, res, next) => {
+    // 1. Check if role is updated, then update User model
+    if (req.body.role) {
+        const employee = await Employee.findById(req.params.id);
+        if (employee && employee.user) {
+            const user = await User.findById(employee.user);
+            if (user) {
+                user.role = req.body.role;
+                await user.save({ validateBeforeSave: false });
+            }
+        }
+    }
+
+    // 2. Update Employee Data
+    const employee = await Employee.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true
+    }).populate('department');
+
+    if (!employee) {
+        return next(new AppError('No employee found with that ID', 404));
+    }
+
+    res.status(200).json({
+        status: 'success',
+        data: employee
     });
 });
 

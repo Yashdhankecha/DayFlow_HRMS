@@ -298,19 +298,25 @@ exports.getAllAttendance = catchAsync(async (req, res, next) => {
     const { date } = req.query;
     let query = {};
     if (date) {
-        const queryDate = new Date(date);
-        queryDate.setHours(0, 0, 0, 0);
-        query.date = { $gte: queryDate };
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        query.date = {
+            $gte: startOfDay,
+            $lte: endOfDay
+        };
     }
 
     const attendance = await Attendance.find(query)
         .populate({
             path: 'employee',
-            select: 'firstName lastName designation department',
+            select: 'firstName lastName designation department loginId',
             populate: { path: 'department', select: 'name' }
         })
-        .sort('-date')
-        .limit(50); // specific limit for performance
+        .sort('-date');
 
     res.status(200).json({
         status: 'success',

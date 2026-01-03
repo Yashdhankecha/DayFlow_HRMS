@@ -1,4 +1,4 @@
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
 import { 
     Users, Calendar, Clock, DollarSign, 
@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const Dashboard = () => {
+const EmployeeDashboard = () => {
   const { user } = useAuth();
   const isAdmin = ['SUPER_ADMIN', 'HR_OFFICER'].includes(user?.role);
 
@@ -200,5 +200,5 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default EmployeeDashboard;
 

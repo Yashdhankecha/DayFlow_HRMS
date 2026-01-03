@@ -25,8 +25,10 @@ const Login = () => {
       } else {
         // role‑based redirection
         const role = user.role;
-        if (role === 'SUPER_ADMIN' || role === 'HR_OFFICER') {
+        if (role === 'SUPER_ADMIN') {
           navigate('/dashboard/admin');
+        } else if (role === 'HR_OFFICER') {
+          navigate('/dashboard/hr');
         } else if (role === 'MANAGER') {
           navigate('/dashboard/manager');
         } else {

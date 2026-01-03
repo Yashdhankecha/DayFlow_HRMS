@@ -1,4 +1,4 @@
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
 import { Users, UserCheck, CalendarDays, Banknote, ClipboardList, ShieldAlert, MoreHorizontal, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';

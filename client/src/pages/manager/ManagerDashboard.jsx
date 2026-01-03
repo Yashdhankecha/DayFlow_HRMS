@@ -1,4 +1,4 @@
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
 import { Users, CalendarDays, Clock, DollarSign } from 'lucide-react';
 import { Link } from 'react-router-dom';

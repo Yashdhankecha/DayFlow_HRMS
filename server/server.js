@@ -1,4 +1,7 @@
 require('dotenv').config();
+console.log('Current directory:', process.cwd());
+console.log('DATABASE_URL:', process.env.DATABASE_URL);
+
 const mongoose = require('mongoose');
 const app = require('./app');
 
